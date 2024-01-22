@@ -12,6 +12,7 @@ import {
 } from "@expo-google-fonts/oswald";
 import { useCallback } from "react";
 import * as SplashScreen from "expo-splash-screen";
+import { KeyboardAvoiderProvider } from "@good-react-native/keyboard-avoider";
 
 export default function App() {
   let [fontsLoaded] = useFonts({
@@ -34,10 +35,12 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container} onLayout={onLayoutRootView}>
-      <StatusBar style="auto" />
-      <AppNavigatorContainer />
-    </View>
+    <KeyboardAvoiderProvider>
+      <View style={styles.container} onLayout={onLayoutRootView}>
+        <StatusBar style="auto" />
+        <AppNavigatorContainer />
+      </View>
+    </KeyboardAvoiderProvider>
   );
 }
 

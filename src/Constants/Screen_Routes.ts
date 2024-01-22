@@ -1,5 +1,9 @@
 // HOME
+export const MAIN_APP = "main";
 export const HOME_SCREEN = "home";
+export const SEARCH_ROUTE = "search";
+export const ROUTE_DETAIL = "router_detail";
+export const SHARED_ROUTES = "shared_routes";
 
 // AUTH
 export const ONBOARD_SCREEN = "onboard";

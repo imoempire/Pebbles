@@ -15,14 +15,14 @@ const OAuth = () => {
         source={require("../../../../assets/google.png")}
         placeholder={blurhash}
         contentFit="contain"
-        transition={1000}
+        // transition={1000}
       />
       <Image
         style={styles.image}
         source={require("../../../../assets/fb.png")}
         placeholder={blurhash}
         contentFit="contain"
-        transition={1000}
+        // transition={1000}
       />
     </View>
   );

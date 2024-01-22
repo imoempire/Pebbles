@@ -17,12 +17,22 @@ import {
 } from "../../Constants/Screen_Routes";
 import useRouter from "../../Hooks/useRouter";
 import OAuth from "./Components/OAuth";
+import PasswordInput from "../../Components/Inputs/PasswordInput";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import useAuthenticator from "../../Hooks/useAuth";
 
 const SignIn = () => {
   const { handleNavigator } = useRouter();
+  const { loginUser } = useAuthenticator();
 
   const handleNavigation = () => {
-    handleNavigator(TERMS_SCREEN);
+    loginUser("isaac@gmail.com", "ghshs")
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleForgotPasswordNavigation = () => {
@@ -34,7 +44,7 @@ const SignIn = () => {
   };
 
   return (
-    <KeyboardAvoiderScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScrollView contentContainerStyle={styles.container}>
       <View style={styles.Greeting}>
         <Text
           style={{
@@ -42,7 +52,7 @@ const SignIn = () => {
             fontSize: wp(6),
           }}
         >
-          Get Started
+          Welcome Back
         </Text>
         <Text
           style={{
@@ -50,7 +60,7 @@ const SignIn = () => {
             fontSize: text_S,
           }}
         >
-          Let's create you an account
+          Let's get you into your account
         </Text>
       </View>
       <View style={{ flex: 0.2, justifyContent: "center" }}>
@@ -58,7 +68,7 @@ const SignIn = () => {
       </View>
       <View style={styles.Content}>
         <FormInput label="Email Address" placeholder="Enter password" />
-        <FormInput label="Password" placeholder="Enter password" />
+        <PasswordInput label="Password" placeholder="Enter password" />
         <View>
           <Text
             style={{
@@ -73,7 +83,7 @@ const SignIn = () => {
           </Text>
         </View>
         <View style={{ gap: 5 }}>
-          <LongButton press={handleNavigation} title="Get Started" />
+          <LongButton press={handleNavigation} title="Sign In" />
           <Text
             style={{
               color: Colors.p_black,
@@ -92,7 +102,7 @@ const SignIn = () => {
           </Text>
         </View>
       </View>
-    </KeyboardAvoiderScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 

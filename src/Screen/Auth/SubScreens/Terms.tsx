@@ -9,10 +9,12 @@ import { Colors } from "../../../Constants/Colors";
 import LongButton from "../../../Components/Buttons/LongButton";
 import useRouter from "../../../Hooks/useRouter";
 import { HOME_SCREEN } from "../../../Constants/Screen_Routes";
+import useAuthenticator from "../../../Hooks/useAuth";
 
 const Terms = () => {
   // HOOKS
   const { handleNavigator } = useRouter();
+  const { loginUser } = useAuthenticator();
 
   //   STATES
   const [accepted, setAccepted] = useState(false);
@@ -21,7 +23,13 @@ const Terms = () => {
   };
 
   const handleNavigation = () => {
-    handleNavigator(HOME_SCREEN);
+    loginUser("imouser", "imo@gmail.com")
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (

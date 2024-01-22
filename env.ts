@@ -1,0 +1,1 @@
+export const GOOGLE_API_KEY = "AIzaSyBGROjcswWz0FXwivxR64wpQI0EZVe9TN4"

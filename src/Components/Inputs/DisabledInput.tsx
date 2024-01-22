@@ -7,12 +7,14 @@ interface Props {
   placeholder?: string;
   label?: string;
   t_Width?: number;
+  value?: string;
 }
 
-const FormInput = ({
+const DisabledFormInput = ({
   placeholder = "Enter here",
   label = "label",
   t_Width = 40,
+  value,
 }: Props) => {
   const [activeColor, setActiveColor] = useState(Colors.p_gray_light);
   let textSize = 15;
@@ -23,7 +25,12 @@ const FormInput = ({
   }
 
   return (
-    <View style={[styles.container, { borderColor: activeColor }]}>
+    <View
+      style={[
+        styles.container,
+        { borderColor: "#A0A0A0", backgroundColor: "#0000001F" },
+      ]}
+    >
       <Text
         style={{
           position: "absolute",
@@ -32,7 +39,7 @@ const FormInput = ({
           fontSize: textSize,
           fontFamily: "Regular",
           backgroundColor: "white",
-          height: 25,
+          height: 20,
           color:
             activeColor === Colors.p_gray_light
               ? Colors.p_gray_dark
@@ -42,16 +49,25 @@ const FormInput = ({
         {label}
       </Text>
       <TextInput
+        editable={false}
+        value={value}
         onFocus={() => setActiveColor(Colors.p_Blue_light)}
         onBlur={() => setActiveColor(Colors.p_gray_light)}
-        style={{ paddingHorizontal: 12, height: "90%", width: "100%", }}
+        style={{
+          paddingHorizontal: 12,
+          height: "90%",
+          width: "100%",
+          fontSize: 20,
+          fontFamily: "Regular",
+          color: "#000000BC",
+        }}
         placeholder={placeholder}
       />
     </View>
   );
 };
 
-export default FormInput;
+export default DisabledFormInput;
 
 const styles = StyleSheet.create({
   container: {

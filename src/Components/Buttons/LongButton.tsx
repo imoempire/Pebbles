@@ -17,9 +17,15 @@ interface Props {
   title: string;
   press?: () => void;
   disabled?: boolean;
+  variant?: "solid" | "outlined";
 }
 
-const LongButton = ({ title, press, disabled = false }: Props) => {
+const LongButton = ({
+  title,
+  press,
+  disabled = false,
+  variant = "solid",
+}: Props) => {
   let size = 6;
   if (PixelRatio.get() <= 2) {
     size = 8;
@@ -35,14 +41,18 @@ const LongButton = ({ title, press, disabled = false }: Props) => {
           height: hp(size),
         },
         {
-          backgroundColor: disabled ? Colors.p_gray_des : Colors.p_color,
+          backgroundColor: disabled
+            ? Colors.p_gray_des
+            : variant === "solid"
+            ? Colors.p_color
+            : Colors.p_white,
         },
       ]}
     >
       <Text
         style={{
           fontSize: text_S,
-          color: Colors.p_white,
+          color: variant === "outlined" ? Colors.p_color : Colors.p_white,
           fontFamily: "Medium",
         }}
       >
