@@ -25,7 +25,7 @@ import {
 import { app } from "../../../Configs/firebaseConfig";
 import { MaterialIcons } from "@expo/vector-icons";
 import { doc, setDoc, getFirestore } from "firebase/firestore";
-import { makeRedirectUri } from "expo-auth-session";
+// import { makeRedirectUri } from "expo-auth-session";
 
 WebBrowser.maybeCompleteAuthSession();
 
