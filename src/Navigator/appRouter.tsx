@@ -13,6 +13,7 @@ import {
   SEARCH_ROUTE,
   ROUTE_DETAIL,
   SHARED_ROUTES,
+  NEW_ONBOARD_SCREEN,
 } from "../Constants/Screen_Routes";
 import Home from "../Screen/Home/Home";
 import SignUp from "../Screen/Auth/SignUp";
@@ -24,6 +25,12 @@ import MyDrawer from "./Drawer";
 import SearchRoutes from "../Components/Modal/SearchRoutes";
 import RouteDetails from "../Screen/Home/Routes/RouteDetails";
 import SharedRoutes from "../Screen/Home/Routes/SharedRoutes";
+// import { getAuth, onAuthStateChanged } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ActivityIndicator, Text, View } from "react-native";
+// import OnboardingScreen from "../Screen/Auth/Onboarding/Onboard";
+import { useSelector } from "react-redux";
+import OnboardingScreen from "../Screen/Auth/Onboarding/Onboard";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
@@ -33,35 +40,55 @@ let screenOption: object = {
   animation: "slide_from_right",
 };
 
-const AuthNavigation = () => {
+const AuthNavigation2 = () => {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       <RootStack.Screen
         options={screenOption}
-        name={ONBOARD_SCREEN}
-        component={Onboading}
-      />
-      <RootStack.Screen
-        options={screenOption}
-        name={SIGNIN_SCREEN}
-        component={SignIn}
-      />
-      <RootStack.Screen
-        options={screenOption}
-        name={SIGNUP_SCREEN}
-        component={SignUp}
-      />
-      <RootStack.Screen
-        options={screenOption}
-        name={FORGOT_PASSWORD_SCREEN}
-        component={ForgetPassword}
-      />
-      <RootStack.Screen
-        options={screenOption}
-        name={TERMS_SCREEN}
-        component={Terms}
+        name={NEW_ONBOARD_SCREEN}
+        component={OnboardingScreen}
       />
     </RootStack.Navigator>
+  );
+};
+
+const AuthNavigation = () => {
+  const { newUser, profile } = useSelector((state: any) => state.user);
+
+  return (
+    <>
+      {newUser ? (
+        <AuthNavigation2 />
+      ) : (
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen
+            options={screenOption}
+            name={ONBOARD_SCREEN}
+            component={Onboading}
+          />
+          {/* <RootStack.Screen
+            options={screenOption}
+            name={SIGNIN_SCREEN}
+            component={SignIn}
+          /> */}
+          {/* <RootStack.Screen
+            options={screenOption}
+            name={SIGNUP_SCREEN}
+            component={SignUp}
+          /> */}
+          {/* <RootStack.Screen
+            options={screenOption}
+            name={FORGOT_PASSWORD_SCREEN}
+            component={ForgetPassword}
+          />
+          <RootStack.Screen
+            options={screenOption}
+            name={TERMS_SCREEN}
+            component={Terms}
+          /> */}
+        </RootStack.Navigator>
+      )}
+    </>
   );
 };
 
@@ -100,33 +127,62 @@ const AppNavigation = () => {
 };
 
 const AppNavigatorContainer = () => {
-  const { getUserLoggedInStatus } = useFetcher();
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { user } = (await getUserLoggedInStatus("imouser")) as {
-          user: { loggedIn: number | any };
-        };
-        console.log(user, "usessßrss");
+  // const auth = getAuth();
+  // const user = auth.currentUser;
 
-        // Update the loggedIn state based on the fetched data
-        if (user === null) {
-          setLoggedIn(false);
-        }
-        setLoggedIn(user?.loggedIn === 1 ? true : false);
-      } catch (error) {
-        console.error("Error fetching user loggedIn status:", error);
-      }
-    };
+  // const checkAuth = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const userJSON = await AsyncStorage.getItem("@user");
+  //     const userData = userJSON ? JSON.parse(userJSON) : null;
+  //     if (userData) {
+  //       setLoggedIn(true);
+  //     }
+  //   } catch (error) {
+  //     // @ts-ignore
+  //     alert(error?.message);
+  //     setLoggedIn(false);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   checkAuth();
+
+  //   const unsub = onAuthStateChanged(auth, async (user) => {
+  //     if (user) {
+  //       await AsyncStorage.setItem("@user", JSON.stringify(user));
+  //       return setLoggedIn(true);
+  //     } else {
+  //       setLoggedIn(false);
+  //       await AsyncStorage.setItem("@user", "");
+  //     }
+  //   });
+  //   return () => unsub();
+  // }, [user]);
+
+  if (loading)
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "white",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator size={"large"} />
+        <Text>Loading....</Text>
+      </View>
+    );
 
   return (
     <NavigationContainer>
-      {!loggedIn ? <AppNavigation /> : <AuthNavigation />}
+      {loggedIn ? <AppNavigation /> : <AuthNavigation />}
     </NavigationContainer>
   );
 };

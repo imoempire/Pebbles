@@ -13,6 +13,12 @@ import {
 import { useCallback } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { KeyboardAvoiderProvider } from "@good-react-native/keyboard-avoider";
+import { store } from "./src/State/store";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistStore } from "redux-persist";
+
+let persistor = persistStore(store);
 
 export default function App() {
   let [fontsLoaded] = useFonts({
@@ -36,10 +42,14 @@ export default function App() {
 
   return (
     <KeyboardAvoiderProvider>
-      <View style={styles.container} onLayout={onLayoutRootView}>
-        <StatusBar style="auto" />
-        <AppNavigatorContainer />
-      </View>
+      <Provider store={store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <View style={styles.container} onLayout={onLayoutRootView}>
+            <StatusBar style="auto" />
+            <AppNavigatorContainer />
+          </View>
+        </PersistGate>
+      </Provider>
     </KeyboardAvoiderProvider>
   );
 }

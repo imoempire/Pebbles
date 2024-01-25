@@ -11,4 +11,5 @@ type RootStackParamList = {
   signup: undefined;
   forgot_password: undefined;
   terms: undefined;
+  onboarding: undefined;
 };
