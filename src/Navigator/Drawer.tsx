@@ -22,7 +22,12 @@ import { text_S } from "../Constants/Extra";
 import useAuthenticator from "../Hooks/useAuth";
 import useRouter from "../Hooks/useRouter";
 import EditNameModal from "../Components/Modal/EditName";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAuth, signOut } from "firebase/auth";
+import { app } from "../Configs/firebaseConfig";
+import dayjs from "dayjs";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useSelector } from "react-redux";
 
 const Drawer = createDrawerNavigator();
 
@@ -58,14 +63,20 @@ const drawerItems: {
   },
 ];
 
+type userProfile = {
+  displayName: string | undefined | null;
+  email: string | undefined | null;
+  dateJoined: string | undefined | null;
+};
+
 function CustomDrawerContent(props: any) {
   const [isLoading, setIsLoading] = useState(false);
   const [isBottomSheetVisible, setBottomSheetVisible] = useState(false);
-
+  // @ts-ignore
+  const [userProfile, setUserProfile] = useState<userProfile>({});
   const openBottomSheet = () => setBottomSheetVisible(true);
   const closeBottomSheet = () => setBottomSheetVisible(false);
 
-  const width = useWindowDimensions().width * 0.3;
   const { logoutUser } = useAuthenticator();
   const { handleNavigator } = useRouter();
 
@@ -73,10 +84,31 @@ function CustomDrawerContent(props: any) {
     handleNavigator(route);
   };
 
+  const auth = getAuth(app);
+  const { user } = useSelector((state: any) => state.user);
+
+  useEffect(() => {
+    let currentUser: userProfile = {
+      displayName: user?.fullName || user?.displayName,
+      email: user?.email,
+      dateJoined: dayjs(user?.signUpDate).format("DD MMM YYYY"),
+    };
+    setUserProfile(currentUser);
+  }, [user]);
+
   const handleLogout = () => {
-    logoutUser("imouser").then((res) => {
-      console.log(res);
-    });
+    signOut(auth)
+      .then(async (user) => {
+        // Sign-out successful.
+        console.log(user);
+        await AsyncStorage.setItem("@user", "");
+      })
+      .catch((error) => {
+        // An error happened.
+      });
+    // logoutUser("imouser").then((res) => {
+    //   console.log(res);
+    // });
   };
 
   return (
@@ -111,9 +143,10 @@ function CustomDrawerContent(props: any) {
             style={{
               fontFamily: "Bold",
               fontSize: wp(10),
+              textAlign: "center",
             }}
           >
-            Emma Phillips
+            {userProfile.displayName}
           </Text>
           <TouchableOpacity
             activeOpacity={1}
@@ -130,6 +163,7 @@ function CustomDrawerContent(props: any) {
               style={{
                 fontFamily: "Regular",
                 fontSize: text_S,
+                textAlign: "center",
               }}
             >
               Change Name
@@ -147,7 +181,7 @@ function CustomDrawerContent(props: any) {
                 fontSize: wp(5),
               }}
             >
-              1,055
+              0
             </Text>
             <Text
               style={{
@@ -166,7 +200,7 @@ function CustomDrawerContent(props: any) {
                 fontSize: wp(5),
               }}
             >
-              20 Nov 2023
+              {userProfile.dateJoined}
             </Text>
             <Text
               style={{
@@ -201,7 +235,10 @@ function CustomDrawerContent(props: any) {
           </TouchableOpacity>
         ))}
       </View>
-      <EditNameModal isVisible={isBottomSheetVisible} closeModal={closeBottomSheet} />
+      <EditNameModal
+        isVisible={isBottomSheetVisible}
+        closeModal={closeBottomSheet}
+      />
     </DrawerContentScrollView>
   );
 }

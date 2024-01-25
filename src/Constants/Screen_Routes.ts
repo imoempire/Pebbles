@@ -11,3 +11,5 @@ export const SIGNIN_SCREEN = "signin";
 export const SIGNUP_SCREEN = "signup";
 export const FORGOT_PASSWORD_SCREEN = "forgot_password";
 export const TERMS_SCREEN = "terms";
+
+export const NEW_ONBOARD_SCREEN = "onboarding"

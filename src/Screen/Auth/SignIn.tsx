@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Constants from "expo-constants";
 import {
   widthPercentageToDP as wp,
@@ -20,19 +20,84 @@ import OAuth from "./Components/OAuth";
 import PasswordInput from "../../Components/Inputs/PasswordInput";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import useAuthenticator from "../../Hooks/useAuth";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  UserCredential,
+  signInWithCredential,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { FieldValues, useForm, Controller } from "react-hook-form";
+import { app } from "../../Configs/firebaseConfig";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
 
 const SignIn = () => {
   const { handleNavigator } = useRouter();
   const { loginUser } = useAuthenticator();
 
-  const handleNavigation = () => {
-    loginUser("isaac@gmail.com", "ghshs")
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  // STATES
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [correctPasswordError, setCorrectPasswordError] = useState<string>("");
+  const [correctPassword, setCorrectPassword] = useState<boolean>(false);
+
+  // FORM HANDLERS
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    setValue,
+  } = useForm();
+
+  const auth = getAuth(app);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    iosClientId:
+      "545644307339-mf1tjjn7sa5k4an8ia23gser7dutlbbn.apps.googleusercontent.com",
+    androidClientId:
+      "545644307339-cle0eaetqg0ghe8oguhobe43n5i0kbep.apps.googleusercontent.com",
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential);
+    }
+  }, [response]);
+
+  const handleNavigation = (data: FieldValues) => {
+    try {
+      setIsLoading(true);
+      let email = data.email;
+      let password = data.password;
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          setIsLoading(false);
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setCorrectPasswordError(errorMessage);
+          setCorrectPassword(true);
+          setIsLoading(false);
+        });
+    } catch (error) {
+      setIsLoading(false);
+    }
+    // loginUser("isaac@gmail.com", "ghshs")
+    //   .then((res) => {
+    //     console.log(res);
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
   };
 
   const handleForgotPasswordNavigation = () => {
@@ -64,11 +129,42 @@ const SignIn = () => {
         </Text>
       </View>
       <View style={{ flex: 0.2, justifyContent: "center" }}>
-        <OAuth />
+        <OAuth promptAsync={promptAsync} />
       </View>
       <View style={styles.Content}>
-        <FormInput label="Email Address" placeholder="Enter password" />
-        <PasswordInput label="Password" placeholder="Enter password" />
+        {correctPassword && (
+          <Text style={{ color: "red" }}>{correctPasswordError}</Text>
+        )}
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: "Your email is required",
+          }}
+          render={({ field: { onChange, value } }) => (
+            <FormInput
+              label="Email Address"
+              placeholder="Enter your email"
+              onChange={(text: string) => onChange(text)}
+              error={errors?.email?.message}
+            />
+          )}
+        />
+        <Controller
+          name="password"
+          control={control}
+          rules={{
+            required: "Your password is required",
+          }}
+          render={({ field: { onChange, value } }) => (
+            <PasswordInput
+              label="Password"
+              placeholder="Enter password"
+              onChange={(text: string) => onChange(text)}
+              error={errors?.password?.message}
+            />
+          )}
+        />
         <View>
           <Text
             style={{
@@ -83,7 +179,11 @@ const SignIn = () => {
           </Text>
         </View>
         <View style={{ gap: 5 }}>
-          <LongButton press={handleNavigation} title="Sign In" />
+          <LongButton
+            loading={isLoading}
+            press={handleSubmit(handleNavigation)}
+            title="Sign In"
+          />
           <Text
             style={{
               color: Colors.p_black,

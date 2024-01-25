@@ -2,17 +2,26 @@ import { PixelRatio, StyleSheet, Text, TextInput, View } from "react-native";
 import React, { useState } from "react";
 import { Colors } from "../../Constants/Colors";
 import { KeyboardAvoiderScrollView } from "@good-react-native/keyboard-avoider";
+import { FieldError, FieldErrorsImpl, Merge } from "react-hook-form";
 
 interface Props {
   placeholder?: string;
   label?: string;
   t_Width?: number;
+  onChange?: (text: any) => void;
+  error?:
+    | string
+    | FieldError
+    | Merge<FieldError, FieldErrorsImpl<any>>
+    | undefined;
 }
 
 const FormInput = ({
   placeholder = "Enter here",
   label = "label",
   t_Width = 40,
+  onChange,
+  error,
 }: Props) => {
   const [activeColor, setActiveColor] = useState(Colors.p_gray_light);
   let textSize = 15;
@@ -23,31 +32,40 @@ const FormInput = ({
   }
 
   return (
-    <View style={[styles.container, { borderColor: activeColor }]}>
-      <Text
-        style={{
-          position: "absolute",
-          top: -position,
-          left: 12,
-          fontSize: textSize,
-          fontFamily: "Regular",
-          backgroundColor: "white",
-          height: 25,
-          color:
-            activeColor === Colors.p_gray_light
-              ? Colors.p_gray_dark
-              : activeColor,
-        }}
-      >
-        {label}
-      </Text>
-      <TextInput
-        onFocus={() => setActiveColor(Colors.p_Blue_light)}
-        onBlur={() => setActiveColor(Colors.p_gray_light)}
-        style={{ paddingHorizontal: 12, height: "90%", width: "100%", }}
-        placeholder={placeholder}
-      />
-    </View>
+    <>
+      {/* @ts-ignore */}
+      {error !== "" ||
+        (error !== undefined && (
+          <Text style={{ margin: 0, color: "red" }}>{error}</Text>
+        ))}
+      <View style={[styles.container, { borderColor: activeColor }]}>
+        <Text
+          style={{
+            position: "absolute",
+            top: -position,
+            left: 12,
+            fontSize: textSize,
+            fontFamily: "Regular",
+            backgroundColor: "white",
+            height: 25,
+            color:
+              activeColor === Colors.p_gray_light
+                ? Colors.p_gray_dark
+                : activeColor,
+          }}
+        >
+          {label}
+        </Text>
+        <TextInput
+          onFocus={() => setActiveColor(Colors.p_Blue_light)}
+          onBlur={() => setActiveColor(Colors.p_gray_light)}
+          style={{ paddingHorizontal: 12, height: "90%", width: "100%" }}
+          placeholder={placeholder}
+          autoCapitalize="none"
+          onChangeText={(text: string) => onChange?.(text)}
+        />
+      </View>
+    </>
   );
 };
 

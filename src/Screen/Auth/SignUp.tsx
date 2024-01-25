@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Constants from "expo-constants";
 import {
   widthPercentageToDP as wp,
@@ -16,39 +16,139 @@ import OAuth from "./Components/OAuth";
 import PasswordInput from "../../Components/Inputs/PasswordInput";
 import useAuthenticator from "../../Hooks/useAuth";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import useFetcher from "../../Hooks/useFetcher";
+import { Controller, FieldValues, useForm } from "react-hook-form";
+import {
+  GoogleAuthProvider,
+  UserCredential,
+  signInWithCredential,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  getAuth,
+  updateProfile,
+} from "firebase/auth";
+import { app } from "../../Configs/firebaseConfig";
+import { FirebaseError } from "firebase/app";
+import * as Google from "expo-auth-session/providers/google";
+import * as WebBrowser from "expo-web-browser";
+
+WebBrowser.maybeCompleteAuthSession();
+
+// import { appAuth } from "../../Configs/firebaseConfig";
+
+// useEffect(() => {
+//   const getAllUser = async () => {
+//     const users = await getAllUsers();
+//     console.log(users, "my usersss");
+//   };
+//   getAllUser();
+// }, []);
 
 const SignUp = () => {
+  // HOOKS
+  const auth = getAuth(app);
   const { handleNavigator } = useRouter();
-  const { createUser } = useAuthenticator();
+  // const { getAllUsers } = useFetcher();
+  // const { createUser } = useAuthenticator();
 
-  const { getAllUsers } = useFetcher();
+  // STATES
+  const [correctPassword, setCorrectPassword] = useState<boolean>(false);
+  const [correctPasswordError, setCorrectPasswordError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userInfo, setUserInfo] = useState(null);
+
+  // FORM HANDLERS
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+    setValue,
+  } = useForm();
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    iosClientId:
+      "545644307339-mf1tjjn7sa5k4an8ia23gser7dutlbbn.apps.googleusercontent.com",
+    androidClientId:
+      "545644307339-cle0eaetqg0ghe8oguhobe43n5i0kbep.apps.googleusercontent.com",
+  });
 
   useEffect(() => {
-    const getAllUser = async () => {
-      const users = await getAllUsers();
-      console.log(users, 'my usersss');
-      
-    };
-    getAllUser();
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+      signInWithCredential(auth, credential);
+    }
+  }, [response]);
 
-    // return () => {
-    //   getAllUser();
-    // };
-  }, []);
-
-  const handleNavigation = () => {
-    /* ---------- */
-    createUser("isaac", "ghshs", "isaac@gmail.com")
-      .then((item) => {
-        console.log(item)
-        // handleNavigator(TERMS_SCREEN);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-    /* ---------- */
+  const handleGoggleSignIn = () => {
+    // signInWithPopup(auth, provider)
+    //   .then((result: UserCredential) => {
+    //     // This gives you a Google Access Token. You can use it to access the Google API.
+    //     const credential = GoogleAuthProvider.credentialFromResult(result);
+    //     const token = credential?.accessToken;
+    //     // The signed-in user info.
+    //     const user = result.user;
+    //     // IdP data available using getAdditionalUserInfo(result)
+    //     // ...
+    //   })
+    //   .catch((error: FirebaseError) => {
+    //     // Handle Errors here.
+    //     const errorCode = error.code;
+    //     const errorMessage = error.message;
+    //     // The email of the user's account used.
+    //     const email = error?.customData?.email;
+    //     // The AuthCredential type that was used.
+    //     const credential = GoogleAuthProvider.credentialFromError(error);
+    //     // ...
+    //   });
   };
+
+  const handleNavigation = (data: FieldValues) => {
+    try {
+      setIsLoading(true);
+      let name = data.name;
+      let email = data.email;
+      let password = data.password;
+      let passwordConfirmation = data.confirmpassword;
+      if (password.length <= 5) {
+        setCorrectPasswordError("Password must be at least 6 characters");
+        setCorrectPassword(true);
+        return;
+      }
+      if (data.password !== data.confirmpassword) {
+        setCorrectPasswordError("Password & ConfirmPassword must be same");
+        setCorrectPassword(true);
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          updateProfile(user, {
+            displayName: name,
+          }).then((profile) => {
+            setIsLoading(false);
+          });
+        })
+        .catch((error) => {
+          setIsLoading(false);
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          console.log(errorMessage);
+
+          setCorrectPasswordError(errorMessage);
+          setCorrectPassword(true);
+        });
+    } catch (error) {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      setCorrectPassword(false);
+    }, 3000);
+  }, [correctPassword]);
 
   const handleSignInNavigation = () => {
     handleNavigator(SIGNIN_SCREEN);
@@ -56,13 +156,8 @@ const SignUp = () => {
 
   return (
     <KeyboardAwareScrollView
-      // automaticallyAdjustKeyboardInsets={true}
-      // iosHideBehavior="stay"
       scrollEnabled={true}
       scrollToOverflowEnabled={true}
-      // scrollsToTop={true}
-      // bounces={false}
-      // scrollsToTop
       contentContainerStyle={[
         {
           flex: 1,
@@ -89,19 +184,78 @@ const SignUp = () => {
         </Text>
       </View>
       <View style={{ flex: 0.2, justifyContent: "center" }}>
-        <OAuth />
+        <OAuth promptAsync={promptAsync} />
       </View>
       <View style={styles.Content}>
-        <FormInput label="Name" placeholder="Enter you name" />
-        <FormInput label="Email Address" placeholder="Enter your email" />
-        <PasswordInput label="Password" placeholder="Enter password" />
-        <PasswordInput
-          label="Confirm Password"
-          placeholder="Confirm password"
+        {correctPassword && (
+          <Text style={{ color: "red" }}>{correctPasswordError}</Text>
+        )}
+        <Controller
+          name="name"
+          control={control}
+          rules={{
+            required: "Your full name is required",
+          }}
+          render={({ field: { onChange, value } }) => (
+            <FormInput
+              onChange={(text: string) => onChange(text)}
+              label="Name"
+              placeholder="Enter you name"
+              error={errors?.name?.message}
+            />
+          )}
         />
-
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: "An email is required",
+          }}
+          render={({ field: { onChange, value } }) => (
+            <FormInput
+              label="Email Address"
+              placeholder="Enter your email"
+              onChange={(text: string) => onChange(text)}
+              error={errors?.email?.message}
+            />
+          )}
+        />
+        <Controller
+          name="password"
+          control={control}
+          rules={{
+            required: "a new password is required",
+          }}
+          render={({ field: { onChange, value } }) => (
+            <PasswordInput
+              label="Password"
+              placeholder="Enter password"
+              onChange={(text: string) => onChange(text)}
+              error={errors?.password?.message}
+            />
+          )}
+        />
+        <Controller
+          name="confirmpassword"
+          control={control}
+          rules={{
+            required: "confirm your password",
+          }}
+          render={({ field: { onChange, value } }) => (
+            <PasswordInput
+              label="Confirm Password"
+              placeholder="Confirm password"
+              onChange={(text: string) => onChange(text)}
+              error={errors?.confirmpassword?.message}
+            />
+          )}
+        />
         <View style={{ gap: 5 }}>
-          <LongButton press={handleNavigation} title="Get Started" />
+          <LongButton
+            loading={isLoading}
+            press={handleSubmit(handleNavigation)}
+            title="Get Started"
+          />
           <Text
             style={{
               color: Colors.p_black,
@@ -142,7 +296,7 @@ const styles = StyleSheet.create({
   Content: {
     flex: 1,
     top: 20,
-    gap: 25,
+    gap: 20,
     // height: "200%",
   },
   Button: {

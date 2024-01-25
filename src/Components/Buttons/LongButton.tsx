@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   PixelRatio,
   StyleSheet,
   Text,
@@ -18,6 +19,7 @@ interface Props {
   press?: () => void;
   disabled?: boolean;
   variant?: "solid" | "outlined";
+  loading?: boolean;
 }
 
 const LongButton = ({
@@ -25,6 +27,7 @@ const LongButton = ({
   press,
   disabled = false,
   variant = "solid",
+  loading = false,
 }: Props) => {
   let size = 6;
   if (PixelRatio.get() <= 2) {
@@ -49,15 +52,19 @@ const LongButton = ({
         },
       ]}
     >
-      <Text
-        style={{
-          fontSize: text_S,
-          color: variant === "outlined" ? Colors.p_color : Colors.p_white,
-          fontFamily: "Medium",
-        }}
-      >
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator />
+      ) : (
+        <Text
+          style={{
+            fontSize: text_S,
+            color: variant === "outlined" ? Colors.p_color : Colors.p_white,
+            fontFamily: "Medium",
+          }}
+        >
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

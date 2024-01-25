@@ -24,6 +24,7 @@ import EmptyRoutes from "../../Components/EmptyRoutes";
 import RenderItem from "./Components/RenderItem";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useSelector } from "react-redux";
 dayjs.extend(relativeTime);
 
 export type RouteItem = {
@@ -118,6 +119,9 @@ const Home = ({ navigation }: { navigation: any }) => {
   //     getAllUser();
   //   };
   // }, []);
+  const { newUser, user } = useSelector((state: any) => state.user);
+  console.log(user, newUser);
+
   const [data, setData] = useState<Section[]>([]);
 
   useEffect(() => {
